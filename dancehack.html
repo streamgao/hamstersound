@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+	<title>DANCE HACK 2018</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'>
+	<script src='./build/Tone.js'></script>
+	<script src='./scripts/jquery.min.js'></script>
+	<script src='./scripts/draggabilly.js'></script>
+	<script src='./scripts/StartAudioContext.js'></script>
+	<script src='./scripts/Interface.js'></script>
+
+	<link rel='stylesheet' type='text/css' href='./style/examples.css'>
+	<style type='text/css'>
+			canvas { margin-top: 3px; }
+	</style>
+</head>
+<body>
+	<div id='Content' class='FullScreen'>
+		<div id='Title'>rampTo</div>
+		<div id='Explanation'>
+					把rampTo的效果作为背景音持续
+					然后加上signal调节
+		</div>
+
+		<!-- <input id='harmony' type='number' name='harmony' min='0.5' max='3' value=1>
+		<button id='harmonyBTN'>submit</button> -->
+	</div>
+
+	<script>
+		let oscillators = [];
+		let bassFreq = 64;
+		for (let i = 0; i < 8; i++){
+				oscillators.push(new Tone.FatOscillator({
+						"frequency" : bassFreq * i,
+						"type" :  "sawtooth10",
+						"volume" : -Infinity,
+						"detune" : Math.random() * 30 - 15,
+						'modulationFrequency': 0.4
+				}).start().toMaster());
+		}
+		Interface.Slider({
+				name : "harmony",
+				min : 0.5,
+				max : 2,
+				value : 1,
+				drag : function(value){
+						oscillators.forEach(function(osc, i){
+									 osc.frequency.rampTo(bassFreq * i * value, 0.4);
+						});
+				}
+		});
+		Interface.Button({
+				text : 'Unmute Base',
+				activeText : 'Mute Base',
+				type : 'toggle',
+				key : 32, //spacebar
+				start : function(){
+						oscillators.forEach(function(osc){
+								osc.volume.rampTo(-20, 0);
+						});
+				},
+				end : function(){
+						oscillators.forEach(function(osc){
+								osc.volume.rampTo(-Infinity, 0);
+						});
+				}
+		});
+
+		// let harmonyValue = document.getElementById('harmony').value;
+		// document.getElementById('harmonyBTN').addEventListener('click', e => {
+		// 		e.preventDefault();
+		// 		harmonyValue = document.getElementById('harmony').value;
+		// 		console.log('Setting harmony value', harmonyValue);
+		// 		oscillators.forEach((osc, i) => {
+		// 				osc.frequency.rampTo(bassFreq * i * harmonyValue, 0.4);
+		// 		});
+		// });
+
+
+
+
+
+		//set the bpm and time signature first
+		Tone.Transport.timeSignature = [6, 4];
+		Tone.Transport.bpm.value = 180;
+
+		//L/R channel merging
+		var merge = new Tone.Merge();
+
+		//a little reverb
+		var reverb = new Tone.Freeverb({
+				"roomSize" : 0.5,
+				"wet" : 0.4
+		});
+		merge.chain(reverb, Tone.Master);
+
+		//the synth settings
+		let synthSettingsL = {
+  			"oscillator": {
+  					"detune": 0,
+  					"type": "custom",
+  					"partials" : [2, 1, 2, 2],
+  					"phase": 0,
+  					"volume": 40
+  			},
+  			"envelope": {
+  					"attack": 0.1,
+  					"decay": 0.8,
+  					"sustain": 15,
+  					"release": 1,
+  			},
+  			"portamento": 0.5,
+  			"volume": 10
+		};
+		let synthSettingsR = {
+  			"oscillator": {
+  					"detune": 0,
+  					"type": "custom",
+  					"partials" : [2, 1, 2, 2],
+  					"phase": 0,
+  					"volume": 0
+  			},
+  			"envelope": {
+  					"attack": 0.005,
+  					"decay": 0.02,
+  					"sustain": 0.02,
+  					"release": 1,
+  			},
+  			"portamento": 0.01,
+  			"volume": 10
+		};
+
+		//left and right synthesizers
+		const synthL = new Tone.PolySynth(synthSettingsL).connect(merge.left);
+		const synthR = new Tone.PolySynth(synthSettingsR).connect(merge.right);
+
+		// the two Tone.Sequences
+		// var partL = new Tone.Sequence(function(time, note){
+		// 	synthL.triggerAttackRelease(note, "8n", time);
+		// }, ["E4", "F#4", "B4", "C#5", "D5", "F#4", "E4", "C#5", "B4", "F#4", "D5", "C#5"], "8n").start();
+		const partL = new Tone.Sequence(function(time, note){
+				synthL.triggerAttackRelease(note, "8n", time.toFixed(2));
+		}, ["E4", "F#4", "B4", 'C#5', "D5", "F#4", "E4", "C#5", "B4", "F#4", "D5", "C#5"], "8n").start();
+
+		const partR = new Tone.Sequence(function(time, note){
+				synthR.triggerAttackRelease(note, "8n", time.toFixed(2));
+		}, ["E4", "F#4", "B4", "C#5", "D5", "F#4", "E4", "C#5", "B4", "F#4", "D5", "C#5"], "8n").start('1m');
+		//set the playback rate of the right part to be slightly slower
+		partR.playbackRate = 0.5; // can change
+		Interface.Slider({
+				name : "LP Rate",
+				min : 0.1,
+				max : 2,
+				value : 1,
+				drag : function(value){
+						partL.playbackRate = value;
+				}
+		});
+		Interface.Slider({
+				name : "RP Rate",
+				min : 0.1,
+				max : 2,
+				value : 0.7,
+				drag : function(value) {
+						partR.playbackRate = value;
+				}
+		});
+		Interface.Slider({
+				name : "LP Volume",
+				min : -50,
+				max : 20,
+				value : 1,
+				drag : function(value) {
+						synthL.set('volume', value);
+				}
+		});
+		Interface.Slider({
+				name: "RP Volume",
+				min: -50,
+				max: 20,
+				value: 1,
+				drag: function(value){
+						synthR.set('volume', value);
+				}
+		});
+		Interface.Button({
+				key: 32,
+				type: "toggle",
+				text: "Start",
+				activeText : "Stop",
+				start: function(){
+							Tone.Transport.start("+0.1");
+				},
+				end: function(){
+							Tone.Transport.stop();
+				}
+		});
+	</script>
+</body>
+</html>
