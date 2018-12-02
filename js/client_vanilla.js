@@ -6,6 +6,11 @@ Number.prototype.map = function (in_min, in_max, out_min, out_max) {
 }
 
 
+const hostlight = '206.189.162.188:8080';
+const socket= new WebSocket('ws://' + hostlight);
+
+// socket.onopen = function() {
+// };
 
 let oscillators = [];
 let bassFreq = 32;
@@ -64,17 +69,14 @@ Interface.Button({
 
 
 
-
-
-
 /* --------------- Base Phase ------------------- */
-// set the bpm and time signature first
+//set the bpm and time signature first
 Tone.Transport.timeSignature = [6, 2];
 Tone.Transport.bpm.value = 70;
 
-// L/R channel merging
+//L/R channel merging
 const mergeBasePhase = new Tone.Merge();
-// a little reverb
+//a little reverb
 const reverbBasePhase = new Tone.Freeverb({
     "roomSize" : 0.5,
     "wet" : 0.7
@@ -85,7 +87,7 @@ var limiter = new Tone.Limiter();
 var panner = new Tone.Panner(0.5);
 mergeBasePhase.chain(delay, reverbBasePhase, reverbC, limiter, panner, Tone.Master);
 
-// the synth settings
+//the synth settings
 let synthSettingsLBase = {
     "oscillator": {
         "detune": 0,
@@ -127,24 +129,6 @@ let synthSettingsLBase = {
     // }
 };
 
-let synthSettingsRBase = {
-    "oscillator": {
-        "detune": 0,
-        "type": "custom",
-        "partials" : [2, 1, 2, 2],
-        "phase": 0,
-        "volume": 0
-    },
-    "envelope": {
-        "attack": 0.005,
-        "decay": 0.02,
-        "sustain": 0.02,
-        "release": 1,
-    },
-    "portamento": 0.01,
-    "volume": 10
-};
-
 let duosetting = {
     vibratoAmount: .1,
     vibratoRate: .5,
@@ -154,8 +138,7 @@ let duosetting = {
         portamento: 0,
         oscillator: {
             type: 'sine',
-            partials: [2, 1, 2, 2],
-            detune: -20
+            partials: [2, 1, 2, 2]
         },
         filterEnvelope: {
             attack: 0.01,
@@ -174,8 +157,7 @@ let duosetting = {
         volume: -10,
         portamento: 1,
         oscillator: {
-            type: 'square',
-            detune: -20
+            type: 'square'
         },
         envelope: {
             attack: 0.01,
@@ -186,7 +168,25 @@ let duosetting = {
     }
 };
 
-// left and right synthesizers
+let synthSettingsRBase = {
+    "oscillator": {
+        "detune": 0,
+        "type": "custom",
+        "partials" : [2, 1, 2, 2],
+        "phase": 0,
+        "volume": 0
+    },
+    "envelope": {
+        "attack": 0.005,
+        "decay": 0.02,
+        "sustain": 0.02,
+        "release": 1,
+    },
+    "portamento": 0.01,
+    "volume": 10
+};
+
+//left and right synthesizers
 const synthLBase = new Tone.FMSynth().connect(mergeBasePhase.left);
 const synthRBase = new Tone.DuoSynth(duosetting).connect(mergeBasePhase.right);
 
@@ -198,7 +198,7 @@ const partLBase = new Tone.Sequence((time, note) => {
 const partRBase = new Tone.Sequence((time, note) => {
     synthRBase.triggerAttackRelease(note, "8n", time.toFixed(2));
 }, ["C5"], "8n").start('1m');
-
+//
 // const partRBase = new Tone.Sequence((time, note) => {
 //     polySynth2.triggerAttackRelease(note, "8n", time.toFixed(2));
 // }, ["E4", "F#4", "B4", "C#5", "D5", "F#4", "E4", "C#5", "B4", "F#4", "D5", "C#5"], "8n").start('100m');
@@ -275,18 +275,22 @@ Interface.Button({
 
 
 /* --------------- Piano Phase ------------------- */
-// set the bpm and time signature first
+
+
+//set the bpm and time signature first
 Tone.Transport.timeSignature = [6, 2];
 Tone.Transport.bpm.value = 100;
 
-// L/R channel merging
+//L/R channel merging
 const merge = new Tone.Merge();
+//a little reverb
 const reverb = new Tone.Freeverb({
     "roomSize" : 0.5,
     "wet" : 0.4
 });
 merge.chain(reverb, Tone.Master);
 
+//the synth settings
 let synthSettingsL = {
     "oscillator": {
         "detune": 0,
@@ -302,7 +306,7 @@ let synthSettingsL = {
         "release": 1,
     },
     "portamento": 0.5,
-    "volume": -50
+    "volume": 10
 };
 let synthSettingsR = {
     "oscillator": {
@@ -319,10 +323,10 @@ let synthSettingsR = {
         "release": 1,
     },
     "portamento": 0.01,
-    "volume": -50
+    "volume": 10
 };
 
-// left and right synthesizers
+//left and right synthesizers
 const synthL = new Tone.PolySynth(synthSettingsL).connect(merge.left);
 const synthR = new Tone.PolySynth(synthSettingsR).connect(merge.right);
 
@@ -365,7 +369,7 @@ Interface.Slider({
     parent: $("#leftpiano"),
     min: -50,
     max: 20,
-    value: -50,
+    value: 1,
     drag: value => {
         synthL.set('volume', value);
     }
@@ -375,7 +379,7 @@ Interface.Slider({
     parent: $("#rightpiano"),
     min: -50,
     max: 20,
-    value: -50,
+    value: 1,
     drag: function(value){
         synthR.set('volume', value);
     }
@@ -393,31 +397,3 @@ Interface.Button({
         Tone.Transport.stop();
     }
 });
-
-
-
-
-
-
-
-
-
-
-const hostlight = '172.16.80.163:8080';
-const socket= new WebSocket('ws://' + hostlight);
-
-socket.onopen = function() {
-    console.log('hi on socket connect');
-};
-socket.onclose = () => {
-    console.log('Connection is closed...');
-};
-socket.onmessage = evt => {
-    let msg;
-    try {
-        msg = JSON.parse(evt.data);
-        console.log('on message receiving data..', msg);
-    } catch (e) {
-        console.log('..something wrong here..', evt.data, e);
-    }
-};
