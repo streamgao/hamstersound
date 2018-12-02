@@ -364,10 +364,11 @@ const scale = (num, in_min, in_max, out_min, out_max) => {
 Number.prototype.map = function (in_min, in_max, out_min, out_max) {
   return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 };
+let GLOBAL_SPEED = 0;
+
 
 const hostlight = '172.16.80.130:8080';
 const socket= new WebSocket('ws://' + hostlight);
-
 socket.onopen = function() {
     console.log('hi on socket connect');
 };
@@ -381,21 +382,38 @@ socket.onmessage = evt => {
         console.log('on message receiving data..', msg);
         const { speed = 10 } = msg;
         if ( speed > 0 ) {
-            // 0.1 - 1
-            const baseFre = speed.map(0, 50, 0.1, 1);
-            updateBaseOscFre(baseFre);
-
-            console.log('hi spee', baseFre);
-            // 0.1 - 2
-            const basePhaseRate = speed.map(0, 50, 0.1, 2);
-            updateLeftBasePLRate(basePhaseRate * 0.1);
-            updateRightBasePLRate(basePhaseRate);
-
-            const basePianoRate = speed.map(0, 50, 0.1, 2);
-            updateLeftPianoPLRate(value * 0.1);
-            updateRightPianoPLRate(basePianoRate);
+            GLOBAL_SPEED = speed;
+            // // 0.1 - 1
+            // const baseFre = speed.map(0, 50, 0.1, 1);
+            // updateBaseOscFre(baseFre);
+            //
+            // console.log('hi spee', baseFre);
+            // // 0.1 - 2
+            // const basePhaseRate = speed.map(0, 50, 0.1, 2);
+            // updateLeftBasePLRate(basePhaseRate * 0.1);
+            // updateRightBasePLRate(basePhaseRate);
+            //
+            // const basePianoRate = speed.map(0, 50, 0.1, 2);
+            // updateLeftPianoPLRate(value * 0.1);
+            // updateRightPianoPLRate(basePianoRate);
         }
     } catch (e) {
         console.log('..something wrong here..', evt.data, e);
     }
 };
+
+let sendWordInterval = setInterval(() => {
+    // 0.1 - 1
+    const baseFre = speed.map(0, 50, 0.1, 1);
+    updateBaseOscFre(baseFre);
+
+    console.log('hi spee', baseFre);
+    // 0.1 - 2
+    const basePhaseRate = speed.map(0, 50, 0.1, 2);
+    updateLeftBasePLRate(basePhaseRate * 0.1);
+    updateRightBasePLRate(basePhaseRate);
+
+    const basePianoRate = speed.map(0, 50, 0.1, 2);
+    updateLeftPianoPLRate(value * 0.1);
+    updateRightPianoPLRate(basePianoRate);
+}, 1000);
