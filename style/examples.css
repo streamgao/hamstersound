@@ -19,9 +19,9 @@ html, body {
   font-family: "Inconsolata", monospace; }
 
 /**
- *  
+ *
  *  Example Home
- *  
+ *
  */
 #Content.Example {
   height: calc(100% - 44px);
@@ -90,9 +90,9 @@ html, body {
         color: black; }
 
 /**
- *  
+ *
  *  TOP BAR
- *  
+ *
  */
 #TopBar {
   background-color: black;
@@ -344,3 +344,9 @@ code {
 #Loading.Loaded {
   pointer-events: none;
   opacity: 0; }
+
+.channel {
+    padding: 10px;
+    width: 45%;
+    display: inline-block;
+}
