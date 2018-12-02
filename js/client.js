@@ -1,3 +1,11 @@
+const scale = (num, in_min, in_max, out_min, out_max) => {
+  return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+};
+Number.prototype.map = function (in_min, in_max, out_min, out_max) {
+  return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+
 let oscillators = [];
 let bassFreq = 32;
 for (let i = 0; i < 8; i++){
@@ -238,13 +246,17 @@ Interface.Button({
     parent: $('#basePhase'),
     key: 32,
     type: "toggle",
-    text: "Start Piano Phase",
-    activeText : "Stop Piano Phase",
+    text: "Unmute Base Phase",
+    activeText : "Mute Base Phase",
     start: () => {
-        Tone.Transport.start("+0.1");
+        // Tone.Transport.start("+0.1");
+        synthLBase.set('volume', 10);
+        synthRBase.set('volume', 10);
     },
     end: () => {
-        Tone.Transport.stop();
+        // Tone.Transport.stop();
+        synthLBase.set('volume', -100);
+        synthRBase.set('volume', -100);
     }
 });
 
