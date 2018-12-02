@@ -146,12 +146,12 @@ const partRBase = new Tone.Sequence((time, note) => {
 /* --- --- update --- --- */
 const updateLeftBasePLRate = value => {
     const lRate = value.toFixed(2);
-    partLBase && partLBase.playbackRate = lRate;
+    partLBase.playbackRate = lRate;
     document.querySelector('#leftphase p').textContent = 'L Piano rate: ' + lRate;
 };
 const updateRightBasePLRate = value => {
     const rRate = value.toFixed(2);
-    partRBase && partRBase.playbackRate = rRate;
+    partRBase.playbackRate = rRate;
     document.querySelector('#rightphase p').textContent = 'R Piano rate: ' + rRate;
 };
 /* --- --- update --- --- */
@@ -286,13 +286,13 @@ const partR = new Tone.Sequence((time, note) => {
 /* --- --- update --- --- */
 const updateLeftPianoPLRate = value => {
     const lRate = value.toFixed(2);
-    partL && partL.playbackRate = lRate;
+    partL.playbackRate = lRate;
     document.querySelector('#leftpiano p').textContent = 'L Piano rate: ' + lRate;
 };
 
 const updateRightPianoPLRate = value => {
     const rRate = value.toFixed(2);
-    partR && partR.playbackRate = rRate;
+    partR.playbackRate = rRate;
     document.querySelector('#rightpiano p').textContent = 'R Piano rate: ' + rRate;
 };
 /* --- --- update --- --- */
@@ -379,21 +379,22 @@ socket.onmessage = evt => {
     try {
         msg = JSON.parse(evt.data);
         console.log('on message receiving data..', msg);
-        const { speed = 10} = msg;
+        const { speed = 10 } = msg;
+        if ( speed > 0 ) {
+            // 0.1 - 1
+            const baseFre = speed.map(0, 50, 0.1, 1);
+            updateBaseOscFre(baseFre);
 
-        // 0.1 - 1
-        const baseFre = speed.map(0, 50, 0.1, 1);
-        updateBaseOscFre(baseFre);
-        
-        console.log('hi spee', baseFre);
-        // 0.1 - 2
-        const basePhaseRate = speed.map(0, 50, 0.1, 2);
-        updateLeftBasePLRate(basePhaseRate * 0.1);
-        updateRightBasePLRate(basePhaseRate);
+            console.log('hi spee', baseFre);
+            // 0.1 - 2
+            const basePhaseRate = speed.map(0, 50, 0.1, 2);
+            updateLeftBasePLRate(basePhaseRate * 0.1);
+            updateRightBasePLRate(basePhaseRate);
 
-        const basePianoRate = speed.map(0, 50, 0.1, 2);
-        updateLeftPianoPLRate(value * 0.1);
-        updateRightPianoPLRate(basePianoRate);
+            const basePianoRate = speed.map(0, 50, 0.1, 2);
+            updateLeftPianoPLRate(value * 0.1);
+            updateRightPianoPLRate(basePianoRate);
+        }
     } catch (e) {
         console.log('..something wrong here..', evt.data, e);
     }
