@@ -1,12 +1,3 @@
-const scale = (num, in_min, in_max, out_min, out_max) => {
-  return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-};
-Number.prototype.map = function (in_min, in_max, out_min, out_max) {
-  return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
-
-
 let oscillators = [];
 let bassFreq = 32;
 for (let i = 0; i < 8; i++){
@@ -18,6 +9,17 @@ for (let i = 0; i < 8; i++){
         'modulationFrequency': 0.4
     }).start().toMaster());
 }
+/* --- --- update --- --- */
+const updateBaseOscFre = value => {
+    const fValue = bassFreq * i * value.toFixed(2);
+    oscillators.forEach((osc, i) => {
+        osc.frequency.rampTo(fValue, 0.4);
+    });
+    document.querySelector('#baseOsc p').textContent = 'Base frequency: ' + fValue;
+    // [60, 600]
+};
+/* --- --- update --- --- */
+
 Interface.Slider({
     name: "harmony",
     parent : $("#baseOsc"),
@@ -25,12 +27,7 @@ Interface.Slider({
     max: 1,
     value: 0.4,
     drag: value => {
-        const fValue = bassFreq * i * value.toFixed(2);
-        oscillators.forEach((osc, i) => {
-            osc.frequency.rampTo(fValue, 0.4);
-        });
-        document.querySelector('#baseOsc p').textContent = 'Base frequency: ' + fValue;
-        // [60, 600]
+        updateBaseOscFre(value);
     }
 });
 Interface.Slider({
@@ -87,66 +84,6 @@ var reverbC = new Tone.Convolver({ url: 'doubleclick.mp3', wet: 0.75 });
 var limiter = new Tone.Limiter();
 var panner = new Tone.Panner(0.5);
 mergeBasePhase.chain(delay, reverbBasePhase, reverbC, limiter, panner, Tone.Master);
-
-// the synth settings
-let synthSettingsLBase = {
-    "oscillator": {
-        "detune": 0,
-        "type": "custom",
-        "partials" : [2, 1, 2, 2],
-        "phase": 1,
-        "volume": 40
-    },
-    "envelope": {
-        "attack": 0.1,
-        "decay": 8,
-        "sustain": 15,
-        "release": 1,
-    },
-    "portamento": 5,
-    "volume": 10,
-    // 'filterEnvelope': {
-    //     'attack': 0.01,
-    //     'decay': 0,
-    //     'sustain': 2,
-    //     'release': 0.5
-    // }
-    // volume: 10,
-    // portamento: 0.5,
-    // oscillator: {
-    //     type: 'sine'
-    // },
-    // filterEnvelope: {
-    //     attack: 0.01,
-    //     decay: 0,
-    //     sustain: 2,
-    //     release: 0.5
-    // },
-    // envelope: {
-    //     attack: 0.01,
-    //     decay: 0,
-    //     sustain: 3,
-    //     release: 0.1
-    // }
-};
-
-let synthSettingsRBase = {
-    "oscillator": {
-        "detune": 0,
-        "type": "custom",
-        "partials" : [2, 1, 2, 2],
-        "phase": 0,
-        "volume": 0
-    },
-    "envelope": {
-        "attack": 0.005,
-        "decay": 0.02,
-        "sustain": 0.02,
-        "release": 1,
-    },
-    "portamento": 0.01,
-    "volume": 10
-};
 
 let duosetting = {
     vibratoAmount: .1,
@@ -206,6 +143,18 @@ const partRBase = new Tone.Sequence((time, note) => {
 //     polySynth2.triggerAttackRelease(note, "8n", time.toFixed(2));
 // }, ["E4", "F#4", "B4", "C#5", "D5", "F#4", "E4", "C#5", "B4", "F#4", "D5", "C#5"], "8n").start('100m');
 
+/* --- --- update --- --- */
+const updateLeftBasePLRate = value => {
+    const lRate = value.toFixed(2);
+    partLBase && partLBase.playbackRate = lRate;
+    document.querySelector('#leftphase p').textContent = 'L Piano rate: ' + lRate;
+};
+const updateRightBasePLRate = value => {
+    const rRate = value.toFixed(2);
+    partRBase && partRBase.playbackRate = rRate;
+    document.querySelector('#rightphase p').textContent = 'R Piano rate: ' + rRate;
+};
+/* --- --- update --- --- */
 
 Interface.Slider({
     name: "LB Rate",
@@ -214,9 +163,7 @@ Interface.Slider({
     max: 2,
     value: 0.5,
     drag: value => {
-        const lRate = value.toFixed(2);
-        partLBase.playbackRate = lRate;
-        document.querySelector('#leftphase p').textContent = 'L Piano rate: ' + lRate;
+        updateLeftBasePLRate(value);
     }
 });
 Interface.Slider({
@@ -226,9 +173,7 @@ Interface.Slider({
     max: 2,
     value: 0.12,
     drag: value => {
-        const rRate = value.toFixed(2);
-        partRBase.playbackRate = rRate;
-        document.querySelector('#rightphase p').textContent = 'R Piano rate: ' + rRate;
+        updateRightBasePLRate(value);
     }
 });
 Interface.Slider({
@@ -338,6 +283,20 @@ const partR = new Tone.Sequence((time, note) => {
     synthR.triggerAttackRelease(note, "8n", time.toFixed(2));
 }, ["E4", "F#4", "B4", "C#5", "D5", "F#4", "E4", "C#5", "B4", "F#4", "D5", "C#5"], "8n").start('1m');
 
+/* --- --- update --- --- */
+const updateLeftPianoPLRate = value => {
+    const lRate = value.toFixed(2);
+    partL && partL.playbackRate = lRate;
+    document.querySelector('#leftpiano p').textContent = 'L Piano rate: ' + lRate;
+};
+
+const updateRightPianoPLRate = value => {
+    const rRate = value.toFixed(2);
+    partR && partR.playbackRate = rRate;
+    document.querySelector('#rightpiano p').textContent = 'R Piano rate: ' + rRate;
+};
+/* --- --- update --- --- */
+
 partL.playbackRate = 0.5; // start slow
 Interface.Slider({
     name: "LP Rate",
@@ -346,9 +305,7 @@ Interface.Slider({
     max: 2,
     value: 0.5,
     drag: value => {
-        const lRate = value.toFixed(2);
-        partL.playbackRate = lRate;
-        document.querySelector('#leftpiano p').textContent = 'L Piano rate: ' + lRate;
+        updateLeftPianoPLRate(value);
     }
 });
 Interface.Slider({
@@ -358,9 +315,7 @@ Interface.Slider({
     max: 2,
     value: 1,
     drag: value => {
-        const rRate = value.toFixed(2);
-        partR.playbackRate = rRate;
-        document.querySelector('#rightpiano p').textContent = 'R Piano rate: ' + rRate;
+        updateRightPianoPLRate(value);
     }
 });
 Interface.Slider({
@@ -403,8 +358,12 @@ Interface.Button({
 
 
 
-
-
+const scale = (num, in_min, in_max, out_min, out_max) => {
+  return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+};
+Number.prototype.map = function (in_min, in_max, out_min, out_max) {
+  return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+};
 
 const hostlight = '172.16.80.130:8080';
 const socket= new WebSocket('ws://' + hostlight);
@@ -419,9 +378,22 @@ socket.onmessage = evt => {
     let msg;
     try {
         msg = JSON.parse(evt.data);
-        const { speed } = msg;
-        // [60, 600]
         console.log('on message receiving data..', msg);
+        const { speed = 10} = msg;
+
+        // 0.1 - 1
+        const baseFre = speed.map(0, 50, 0.1, 1);
+        updateBaseOscFre(baseFre);
+        
+        console.log('hi spee', baseFre);
+        // 0.1 - 2
+        const basePhaseRate = speed.map(0, 50, 0.1, 2);
+        updateLeftBasePLRate(basePhaseRate * 0.1);
+        updateRightBasePLRate(basePhaseRate);
+
+        const basePianoRate = speed.map(0, 50, 0.1, 2);
+        updateLeftPianoPLRate(value * 0.1);
+        updateRightPianoPLRate(basePianoRate);
     } catch (e) {
         console.log('..something wrong here..', evt.data, e);
     }
