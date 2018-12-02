@@ -30,6 +30,7 @@ Interface.Slider({
             osc.frequency.rampTo(fValue, 0.4);
         });
         document.querySelector('#baseOsc p').textContent = 'Base frequency: ' + fValue;
+        // [60, 600]
     }
 });
 Interface.Slider({
@@ -61,6 +62,8 @@ Interface.Button({
         });
     }
 });
+
+
 
 
 
@@ -403,7 +406,7 @@ Interface.Button({
 
 
 
-const hostlight = '172.16.80.163:8080';
+const hostlight = '172.16.80.130:8080';
 const socket= new WebSocket('ws://' + hostlight);
 
 socket.onopen = function() {
@@ -416,6 +419,8 @@ socket.onmessage = evt => {
     let msg;
     try {
         msg = JSON.parse(evt.data);
+        const { speed } = msg;
+        // [60, 600]
         console.log('on message receiving data..', msg);
     } catch (e) {
         console.log('..something wrong here..', evt.data, e);
